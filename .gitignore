@@ -1,9 +1,3 @@
-*.class
-*.pyc
-*.pyo
 .DS_Store
 .project
-
-._README
-
-._.gitignore
+.idea/*
