@@ -1,19 +1,20 @@
 --------------------
-TransleX - 1.0
+TransleX - 2.0
 --------------------
 
 First Released: April 21st, 2012
-Author: Joe Molloy <info@hyper-typer.com>
+Author: Joe Molloy <info@hyper-typer.com> and Joakim Nyman <joakim@fractalwolfe.com>
 License: GNU GPLv2 (or later at your option)
 
-This addon is a translation tool, enabling developers and site administrators to give users (annonymous or registered)
-access to a simple AJAX form-based interface for making contributions to 3rd party package lexicons. Packages, topics 
-and languages can be restricted by the site administrator/developer and the site administrator may also replace the 
-current live topic file with one updated using this addon.  The addon creates a timestamped backup of any topic files 
-replaced in this way.  
+This add-on is a translation tool, enabling developers and site administrators to give users (anonymous or registered)
+access to a simple AJAX form-based interface for making contributions to third party package lexicons, as well as the
+MODX Manager and setup. Packages, topics and languages can be restricted by the site administrator/developer and the
+site administrator may also replace the current live topic file with one updated using this add-on. The add-on creates
+a timestamped backup of any topic files replaced in this way.
 
-TransleX has been developed for Mr Mark Hamstra who also concieved the idea (http://www.markhamstra.com) and 
-he has generously released it as open source (GPL v2+) to benefit others with similar needs.
+TransleX was originally developed for Mr Mark Hamstra who also conceived the idea (http://www.markhamstra.com) and
+he has generously released it as open source (GPL v2+) to benefit others with similar needs. It has since been
+completely rebuilt to allow more flexibility in themeing and make the add-on class-based.
 
 
 Instructions
@@ -88,8 +89,8 @@ http://hyper-typer.com/news/modx-lexicon-translation-tool-translex
 
 Licensing
 ------------
-This addon is licensed under the GPL Public License Version 2 (or higher) and you should have received a copy of same along 
-with this addon.
+This add-on is licensed under the GPL Public License Version 2 (or higher) and you should have received a copy of same along
+with this add-on.
 
 Thanks for using TransleX!
 Joe Molloy
