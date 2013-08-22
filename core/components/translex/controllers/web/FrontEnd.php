@@ -259,7 +259,7 @@ class TransleXFrontEndController extends TransleXController {
                 $response['message'] = $this->modx->lexicon('translex.no_package_error_message');
             } else {
                 $defaultdir = ($_POST[$this->getProperty('packageKey')] == "core") ? $this->modx->getOption('core_path') : $this->translex->config['packagesPath'];
-                $defaultdir .= '/lexicon/'.$cultureKey.'/';
+                $defaultdir .= 'lexicon/'.$cultureKey.'/';
                 if (!file_exists($defaultdir)) {
                     // If default language does not exist, log event
                     $this->logEvent('error',$this->modx->lexicon('translex.no_default_language_message'),$_POST[$this->getProperty('packageKey')],'',$cultureKey);
@@ -270,7 +270,11 @@ class TransleXFrontEndController extends TransleXController {
                     $topics = array();
                     $topicfiles = glob($defaultdir.'*.php');
                     $topicsstr = $this->getProperty('topics');
-                    $topicsAr = explode(',',str_replace(' ','',$topicsstr));
+                    if (empty($topicsAr)) {
+                        $topicsAr = array();
+                    } else {
+                        $topicsAr = explode(',',str_replace(' ','',$topicsstr));
+                    }
                     foreach($topicfiles as $file) {
                         $topicfile = basename($file);
                         $topic = str_replace('.inc.php','',$topicfile);
@@ -476,3 +480,4 @@ class TransleXFrontEndController extends TransleXController {
         return $this->responseToJSON($response);
     }
 }
+return 'TransleXFrontEndController';
