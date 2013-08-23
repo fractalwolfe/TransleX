@@ -73,7 +73,6 @@ $builder->registerNamespace(PKG_NAMESPACE,false,true,'{core_path}components/'.PK
 $modx->log(modX::LOG_LEVEL_INFO,'Created Transport Package and Namespace.');
 
 /* add system settings */
-/* Commented out because we don't have any as of yet...
 $modx->log(modX::LOG_LEVEL_INFO,'Packaging system settings...');
 $settings = include $sources['data'].'transport.settings.php';
 if (!is_array($settings)) {
@@ -91,7 +90,6 @@ if (!is_array($settings)) {
     $modx->log(modX::LOG_LEVEL_INFO,'Successfully packaged '.count($settings).' system settings.');
 }
 unset($settings,$setting,$attributes);
-*/
 
 /* create category */
 $category= $modx->newObject('modCategory');
