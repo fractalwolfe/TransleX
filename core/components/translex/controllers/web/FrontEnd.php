@@ -336,7 +336,7 @@ class TransleXFrontEndController extends TransleXController {
                     if (file_exists($olangdir)) {
                         if(!empty($topic)){
                             $_lang = array();
-                            include($base_path.'/lexicon/'.$cultureKey.'/'.$topic.'.inc.php');
+                            include($base_path.'/lexicon/'.$lang.'/'.$topic.'.inc.php');
                             $olang = $_lang;
                             unset($_lang);
                         }
