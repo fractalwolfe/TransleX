@@ -143,10 +143,6 @@ $vehicle->resolve('file',array(
     'source' => $sources['core'],
     'target' => "return MODX_CORE_PATH . 'components/';",
 ));
-$vehicle->resolve('file',array(
-    'source' => $sources['assets'],
-    'target' => "return MODX_ASSETS_PATH . 'components/';",
-));
 $builder->putVehicle($vehicle);
 $modx->log(modX::LOG_LEVEL_INFO,'Successfully added resolvers and packaged category.');
 
