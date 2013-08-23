@@ -27,7 +27,6 @@
  * @subpackage controllers
  */
 class TransleXFrontEndController extends TransleXController {
-    public $isAuthenticated = false;
     /** @var array $packages List of available packages */
     public $packages = array();
     /** @var array $languages List of available languages */
@@ -41,25 +40,20 @@ class TransleXFrontEndController extends TransleXController {
             'langWrapperTpl' => 'translexLanguageContainer',
             'langItemTpl' => 'translexLanguageItem',
             'topicWrapperTpl' => 'translexTopicContainer',
-            'tplType' => 'modChunk',
             'cultureKey' => $this->modx->cultureKey,
-            'actionKey' => 'a',
-            'packageKey' => 'p',
-            'topicKey' => 't',
-            'languageKey' => 'l',
-            'saveKey' => 'save',
-            'commitKey' => 'commit',
-            'logKey' => 'log',
-            'clearLog' => 'clearLog',
             'packages' => '',
             'topics' => '',
             'languages' => $this->modx->getOption('translex.languages',null,'be,cs,en,es,fi,fr,ja,it,nl,pl,pt,ru,sv,th,zh'),
-            'log' => '',
-            'viewCore' => true,
+            'viewCore' => false,
             'notifyTo' => '',
-        ));
+            'log' => '',
 
-        $this->isAuthenticated = $this->modx->user->isAuthenticated($this->modx->context->get('key'));
+            'request_param_action' => $this->modx->getOption('translex.request_param_action',null,'action'),
+            'request_param_obtain' => $this->modx->getOption('translex.request_param_obtain',null,'obtain'),
+            'request_param_package' => $this->modx->getOption('translex.request_param_package',null,'package'),
+            'request_param_topic' => $this->modx->getOption('translex.request_param_topic',null,'topic'),
+            'request_param_language' => $this->modx->getOption('translex.request_param_language',null,'language'),
+        ));
     }
 
     /**
@@ -100,22 +94,22 @@ class TransleXFrontEndController extends TransleXController {
      * @return string|bool
      */
     public function handleRequest() {
-        $actionKey = $this->getProperty('actionKey','action');
+        $actionKey = $this->getProperty('request_param_action');
 
         $output = false;
         if (!empty($_POST) && isset($_POST[$actionKey])) {
             // If this is an action request
             switch ($_POST[$actionKey]) {
-                case $this->getProperty('saveKey','save'):
+                case 'save':
                     $output = $this->runProcessor('TranslationSave');
                     break;
-                case $this->getProperty('commitKey','commit'):
+                case 'commit':
                     $output = $this->runProcessor('TranslationCommit');
                     break;
-                case $this->getProperty('logKey','log'):
+                case 'log':
                     $output = $this->runProcessor('LogRead');
                     break;
-                case $this->getProperty('clearLogKey','clearLog'):
+                case 'clearlog':
                     $output = $this->runProcessor('LogClear');
                     break;
             }
@@ -165,8 +159,8 @@ class TransleXFrontEndController extends TransleXController {
         }
 
         // If MODX core package is requested, add that to the list
-        $viewCore = $this->getProperty('viewCore',false);
-        if (!empty($viewCore)) {
+        $viewCore = $this->getProperty('viewCore');
+        if ($viewCore == 1) {
             $packages[] = 'core';
         }
 
@@ -200,13 +194,16 @@ class TransleXFrontEndController extends TransleXController {
         if(!file_exists($this->translex->config['workspacePath'])){
             $wd = mkdir($this->translex->config['workspacePath'],0777);
             if(!$wd){
-                return '<p>'.$this->modx->lexicon('translex.workspace_directory_create_failure_message').'</p>';
+                return '<p>'.$this->modx->lexicon('translex.error_create_workspacedir_failed').'</p>';
             }
         }
 
         $packages = '';
-        foreach($this->packages as $packagename){
-            $packages .= $this->modx->getChunk($this->getProperty('pkgItemTpl'),array('package' => $packagename));
+        foreach($this->packages as $packagekey){
+            $packagename = $packagekey;
+            // Separated to allow proper name for MODX Manager lexicon
+            if ($packagekey == 'core') $packagename = "MODX Manager";
+            $packages .= $this->modx->getChunk($this->getProperty('pkgItemTpl'),array('packagekey' => $packagekey, 'packagename' => $packagename));
         }
         $packagesWrapper = $this->modx->getChunk($this->getProperty('pkgWrapperTpl'),array('packages' => $packages));
 
@@ -227,21 +224,9 @@ class TransleXFrontEndController extends TransleXController {
             'topics' => $topicsWrapper
         );
 
-        $logEvents = $this->getProperty('log');
-        if (!empty($logEvents)) {
-            if($logEvents != null){
-                if(in_array('access',$logEvents)){
-                    $message = '';
-                    $action = 'access';
-                    $package = '';
-                    $topic = '';
-                    $language = $this->modx->cultureKey;
-                    $lf = $this->logEvent($message,$action,$package,$topic,$language);
-                    if(!$lf){
-                        return '<p>'.$this->modx->lexicon('translex.logfile_create_failed_message').'</p>';
-                    }
-                }
-            }
+        $lf = $this->logEvent('access','','','',$this->modx->cultureKey);
+        if(!$lf){
+            return '<p>'.$this->modx->lexicon('translex.error_create_logfile_failed').'</p>';
         }
 
         return $this->modx->getChunk($this->getProperty('tpl'),$elements);
@@ -253,18 +238,18 @@ class TransleXFrontEndController extends TransleXController {
         if (empty($cultureKey)) {
             $cultureKey = $this->modx->cultureKey;
         }
-        if ($_POST['o'] == 'package') {
-            if (empty($_POST[$this->getProperty('packageKey')])) {
+        if ($_POST[$this->getProperty('request_param_obtain')] == 'package') {
+            if (empty($_POST[$this->getProperty('request_param_package')])) {
                 $response['success'] = 0;
-                $response['message'] = $this->modx->lexicon('translex.no_package_error_message');
+                $response['message'] = $this->modx->lexicon('translex.error_no_package_selected');
             } else {
-                $defaultdir = ($_POST[$this->getProperty('packageKey')] == "core") ? $this->modx->getOption('core_path') : $this->translex->config['packagesPath'];
+                $defaultdir = ($_POST[$this->getProperty('request_param_package')] == "core") ? $this->modx->getOption('core_path') : $this->translex->config['packagesPath'];
                 $defaultdir .= 'lexicon/'.$cultureKey.'/';
                 if (!file_exists($defaultdir)) {
                     // If default language does not exist, log event
-                    $this->logEvent('error',$this->modx->lexicon('translex.no_default_language_message'),$_POST[$this->getProperty('packageKey')],'',$cultureKey);
+                    $this->logEvent('error',$this->modx->lexicon('translex.error_no_default_language'),$_POST[$this->getProperty('request_param_package')],'',$cultureKey);
                     $response['success'] = 0;
-                    $response['message'] = $this->modx->lexicon('translex.no_default_language_message');
+                    $response['message'] = $this->modx->lexicon('translex.error_no_default_language');
                 } else {
                     // If default language exists, load topics
                     $topics = array();
@@ -291,12 +276,12 @@ class TransleXFrontEndController extends TransleXController {
                     }
                     if (count($topics) == 0) {
                         // If no topics were found, log event
-                        $message = $this->modx->lexicon('translex.no_default_topics_message');
-                        $package = $_POST[$this->getProperty('packageKey')];
-                        $topic = $_POST[$this->getProperty('topicKey')];
+                        $message = $this->modx->lexicon('translex.error_no_default_topics');
+                        $package = $_POST[$this->getProperty('request_param_package')];
+                        $topic = $_POST[$this->getProperty('request_param_topic')];
                         $this->logEvent('error',$message,$package,$topic,$cultureKey);
                         $response['success'] = 0;
-                        $response['message'] = $this->modx->lexicon('translex.no_default_topics_message');
+                        $response['message'] = $this->modx->lexicon('translex.error_no_default_topics');
                     } else {
                         // Return topics
                         $response['success'] = 1;
@@ -305,14 +290,14 @@ class TransleXFrontEndController extends TransleXController {
                 }
             }
         } else {
-            $package = $_POST[$this->getProperty('packageKey')];
-            $topic = $_POST[$this->getProperty('topicKey')];
+            $package = $_POST[$this->getProperty('request_param_package')];
+            $topic = $_POST[$this->getProperty('request_param_topic')];
             $base_path = ($package == 'core') ? $this->modx->getOption('core_path') : $this->translex->config['packagesPath'].$package;
             include($base_path.'/lexicon/'.$cultureKey.'/'.$topic.'.inc.php');
 
             if (count($_lang) == 0) {
                 // If topic has no entries, log event and return error
-                $error_message = $this->modx->lexicon('translex.no_default_topic_entries_message');
+                $error_message = $this->modx->lexicon('translex.error_no_default_topic_entries');
                 $this->logEvent('error',$error_message,$package,$topic,$cultureKey);
                 $response['success'] = 0;
                 $response['message'] = $error_message;
@@ -327,8 +312,8 @@ class TransleXFrontEndController extends TransleXController {
                 unset($_lang);
                 $response['data'] = $rows;
             }
-            if ($_POST['o'] == 'language') {
-                $lang = $_POST[$this->getProperty('languageKey')];
+            if ($_POST[$this->getProperty('request_param_obtain')] == 'language') {
+                $lang = $_POST[$this->getProperty('request_param_language')];
                 $olang = array();
                 if (!empty($lang)) {
                     $lang = str_replace(' ('.$this->modx->lexicon('translex.default').')','',$lang);
@@ -347,10 +332,10 @@ class TransleXFrontEndController extends TransleXController {
                         // If not, try to create it
                         $wpd = mkdir($workingPkgDir);
                         if(!$wpd){
-                            $error_message = $this->modx->lexicon('translex.workspace_package_directory_create_failure_message').' - '.$workingPkgDir;
+                            $error_message = $this->modx->lexicon('translex.error_create_workspacepkgdir_failed').' - '.$workingPkgDir;
                             $this->logEvent('error',$error_message,$package,$topic,$cultureKey);
                             $response['success'] = 0;
-                            $response['message'] = $this->modx->lexicon('translex.workspace_package_directory_create_failure_message');
+                            $response['message'] = $this->modx->lexicon('translex.error_create_workspacepkgdir_failed');
                             return $this->responseToJSON($response);
                         }
                     }
@@ -360,10 +345,10 @@ class TransleXFrontEndController extends TransleXController {
                         // If not, try to create it
                         $wld = mkdir($workingLangDir,0777);
                         if(!$wld){
-                            $error_message = $this->modx->lexicon('translex.workspace_langauge_directory_create_failure_message').' - '.$workingLangDir;
+                            $error_message = $this->modx->lexicon('translex.error_create_workspacelangdir_failed').' - '.$workingLangDir;
                             $this->logEvent('error',$error_message,$package,$topic,$cultureKey);
                             $response['success'] = 0;
-                            $response['message'] = $this->modx->lexicon('translex.workspace_langauge_directory_create_failure_message');
+                            $response['message'] = $this->modx->lexicon('translex.error_create_workspacelangdir_failed');
                             return $this->responseToJSON($response);
                         }
                     }
@@ -383,10 +368,10 @@ class TransleXFrontEndController extends TransleXController {
                         }
                         if (!$file) {
                             // If file still doesn't exist, log event and return error
-                            $error_message = $this->modx->lexicon('translex.topic_file_create_error_message').' - '.$workingFile;
+                            $error_message = $this->modx->lexicon('translex.error_create_topicfile').' - '.$workingFile;
                             $this->logEvent('error',$error_message,$package,$topic,$cultureKey);
                             $response['success'] = 0;
-                            $response['message'] = $this->modx->lexicon('translex.topic_file_create_error_message');
+                            $response['message'] = $this->modx->lexicon('translex.error_create_topicfile');
                             return $this->responseToJSON($response);
                         } else {
                             // Close the file and run again
@@ -417,10 +402,10 @@ class TransleXFrontEndController extends TransleXController {
                                     $file = copy($liveFile,$workingFile);
                                     if (!$file) {
                                         // If file still doesn't exist, log event and return error
-                                        $error_message = $this->modx->lexicon('translex.topic_file_create_error_message').' - '.$workingFile;
+                                        $error_message = $this->modx->lexicon('translex.error_create_topicfile').' - '.$workingFile;
                                         $this->logEvent('error',$error_message,$package,$topic,$cultureKey);
                                         $response['success'] = 0;
-                                        $response['message'] = $this->modx->lexicon('translex.topic_file_create_error_message');
+                                        $response['message'] = $this->modx->lexicon('translex.error_create_topicfile');
                                         return $this->responseToJSON($response);
                                     } else {
                                         // Close the file and run again
@@ -429,10 +414,10 @@ class TransleXFrontEndController extends TransleXController {
                                     }
                                 } else {
                                     // Failed to delete file
-                                    $error_message = $this->modx->lexicon('translex.empty_topic_file_removal_failure_message').' - '.$workingFile;
+                                    $error_message = $this->modx->lexicon('translex.error_remove_empty_topicfile_failed').' - '.$workingFile;
                                     $this->logEvent('error',$error_message,$package,$topic,$cultureKey);
                                     $response['success'] = 0;
-                                    $response['message'] = $this->modx->lexicon('translex.empty_topic_file_removal_failure_message');
+                                    $response['message'] = $this->modx->lexicon('translex.error_remove_empty_topicfile_failed');
                                     return $this->responseToJSON($response);
                                 }
                             } else {

@@ -45,44 +45,44 @@ class TransleXTranslationCommitProcessor extends TransleXProcessor {
         $bk = copy($lfile,$bfile);
         if (!$bk) {
             // If backup failed, log event and respond
-            $this->controller->logEvent('commit',$this->modx->lexicon('translex.backup_failed_message'),$this->package,$this->topic,$this->lang);
+            $this->controller->logEvent('commit',$this->modx->lexicon('translex.error_backup_failed'),$this->package,$this->topic,$this->lang);
             $response['success'] = 0;
-            $response['message'] = $this->modx->lexicon('translex.backup_failure_message');
+            $response['message'] = $this->modx->lexicon('translex.error_backup_failed');
             return $this->controller->responseToJSON($response);
         } else {
             // If backup succeeded, log event and try to replace live file
-            $this->controller->logEvent('commit',$this->modx->lexicon('translex.backup_success_message').' - '.$bfile,$this->package,$this->topic,$this->lang);
+            $this->controller->logEvent('commit',$this->modx->lexicon('translex.success_backup_completed').' - '.$bfile,$this->package,$this->topic,$this->lang);
 
             $wfile = $this->translex->config['workspacePath'].$this->package.'/'.$this->lang.'/'.$this->topic.'.inc.php';
             $ct = copy($wfile,$lfile);
             if (!$ct) {
                 // If replacing the file failed, log the event and respond
-                $this->controller->logEvent('error',$this->modx->lexicon('translex.commit_failure_message').' - '.$wfile,$this->package,$this->topic,$this->lang);
+                $this->controller->logEvent('error',$this->modx->lexicon('translex.error_commit_failed').' - '.$wfile,$this->package,$this->topic,$this->lang);
                 $response['success'] = 0;
-                $response['message'] = $this->modx->lexicon('translex.commit_failure_message');
+                $response['message'] = $this->modx->lexicon('translex.error_commit_failed');
                 return $this->controller->responseToJSON($response);
             } else {
                 // If replacing the file succeeded, log the event and respond
-                $this->controller->logEvent('commit',$this->modx->lexicon('translex.commit_success_message').' - '.$wfile,$this->package,$this->topic,$this->lang);
+                $this->controller->logEvent('commit',$this->modx->lexicon('translex.success_commit_completed').' - '.$wfile,$this->package,$this->topic,$this->lang);
                 $response['success'] = 1;
-                $response['message'] = $this->modx->lexicon('translex.commit_success_message');
+                $response['message'] = $this->modx->lexicon('translex.success_commit_completed');
                 return $this->controller->responseToJSON($response);
             }
         }
     }
 
     public function processRequest() {
-        $this->package = $_POST[$this->controller->getProperty('packageKey')];
-        $this->topic = $_POST[$this->controller->getProperty('topicKey')];
-        $this->lang = $_POST[$this->controller->getProperty('languageKey')];
+        $this->package = $_POST[$this->controller->getProperty('request_param_package')];
+        $this->topic = $_POST[$this->controller->getProperty('request_param_topic')];
+        $this->lang = $_POST[$this->controller->getProperty('request_param_language')];
         $this->lang = str_replace(' ('.$this->modx->lexicon('translex.default').')','',$this->lang);
         $post = $this->controller->getRealPOST();
 
         foreach($post as $key => $value){
-            if($key != $this->controller->getProperty('packageKey')
-                && $key != $this->controller->getProperty('topicKey')
-                && $key != $this->controller->getProperty('languageKey')
-                && $key != $this->controller->getProperty('actionKey')) {
+            if($key != $this->controller->getProperty('request_param_package')
+                && $key != $this->controller->getProperty('request_param_topic')
+                && $key != $this->controller->getProperty('request_param_language')
+                && $key != $this->controller->getProperty('request_param_action')) {
                 $keys[$key] = $value;
             }
         }
@@ -98,7 +98,7 @@ class TransleXTranslationCommitProcessor extends TransleXProcessor {
             }
             fclose($file);
         } catch (Exception $e) {
-            $this->modx->log(modX::LOG_LEVEL_ERROR, '[TransleX] '.$this->modx->lexicon('translex.error.writing_translation_file_failed'));
+            $this->modx->log(modX::LOG_LEVEL_ERROR, '[TransleX] '.$this->modx->lexicon('translex.error_writing_topic_file_failed'));
             return false;
         }
         // Log event

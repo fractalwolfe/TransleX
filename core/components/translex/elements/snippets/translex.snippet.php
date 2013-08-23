@@ -27,9 +27,8 @@
  *
  * @package translex
  */
-require_once $modx->getOption('translex.core_path',null,$modx->getOption('core_path').'components/translex/').'model/translex/translex.class.php';
-$translex = new TransleX($modx,$scriptProperties);
-if (!is_object($translex) || !($translex instanceof TransleX)) return '';
+$translex = $modx->getService('translex','TransleX',$modx->getOption('translex.core_path',null,$modx->getOption('core_path').'components/translex/').'model/translex/',$scriptProperties);
+if (!($translex instanceof TransleX)) return '';
 
 $controller = $translex->loadController('FrontEnd');
 $output = $controller->run($scriptProperties);

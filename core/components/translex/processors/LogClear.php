@@ -26,9 +26,9 @@ class TransleXLogClearProcessor extends TransleXProcessor {
         $logfile = $this->translex->config['workspacePath'].'translex.log';
         if(file_exists($logfile)){
             unlink($logfile);
-            $response['message'] = $this->modx->lexicon('translex.log_file_cleared_message');
+            $response['message'] = $this->modx->lexicon('translex.success_log_file_cleared');
         }else{
-            $response['message'] = $this->modx->lexicon('translex.no_log_file_message');
+            $response['message'] = $this->modx->lexicon('translex.success_log_file_does_not_exist');
         }
         return $this->translex->responseToJSON($response);
     }

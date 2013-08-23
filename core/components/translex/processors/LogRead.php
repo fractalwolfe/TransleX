@@ -42,11 +42,11 @@ class TransleXLogReadProcessor extends TransleXProcessor {
                 $response['log'] = $logEntries;
             } else {
                 $response['log'] = $logEntries;
-                $response['message'] = $this->modx->lexicon('translex.empty_log_file_message');
+                $response['message'] = $this->modx->lexicon('translex.log_file_empty');
             }
         } else {
             $response['success'] = 0;
-            $response['message'] = $this->modx->lexicon('translex.no_log_file_message');
+            $response['message'] = $this->modx->lexicon('translex.error_logfile_does_not_exist');
         }
         $response['success'] = 1;
         return $this->translex->responseToJSON($response);

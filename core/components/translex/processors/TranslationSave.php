@@ -49,9 +49,9 @@ class TransleXTranslationSaveProcessor extends TransleXProcessor {
             $notifyTo = $this->controller->getProperty('notifyTo');
             if (!empty($notifyTo)) {
                 $action = $this->modx->lexicon('translex.event_saved');
-                $package = ucwords($_POST[$this->controller->getProperty('packageKey')]);
-                $topic = ucwords($_POST[$this->controller->getProperty('topicKey')]);
-                $lang = ucwords($_POST[$this->controller->getProperty('languageKey')]);
+                $package = ucwords($_POST[$this->controller->getProperty('request_param_package')]);
+                $topic = ucwords($_POST[$this->controller->getProperty('request_param_topic')]);
+                $lang = ucwords($_POST[$this->controller->getProperty('request_param_language')]);
                 $site_name = $this->modx->getOption('site_name');
                 $inst = $action.$package.$topic.$lang;
                 if (!isset($_COOKIE['translex'])) {
@@ -72,10 +72,10 @@ class TransleXTranslationSaveProcessor extends TransleXProcessor {
                 $this->translex->notifyAdmin($notifyTo,$action,$package,$topic,$lang,$site_name);
             }
             $response['success'] = 1;
-            $response['message'] = $this->modx->lexicon('translex.saved_message');
+            $response['message'] = $this->modx->lexicon('translex.success_save_completed');
             return $this->controller->responseToJSON($response);
         } else {
-            $error_message = $this->modx->lexicon('translex_saved_message_error');
+            $error_message = $this->modx->lexicon('translex.error_save_failed');
             $this->controller->logEvent('save',$error_message,$this->package,$this->topic,$this->lang);
             $response['success'] = 0;
             $response['message'] = $error_message;
@@ -84,17 +84,17 @@ class TransleXTranslationSaveProcessor extends TransleXProcessor {
     }
 
     public function processRequest() {
-        $this->package = $_POST[$this->controller->getProperty('packageKey')];
-        $this->topic = $_POST[$this->controller->getProperty('topicKey')];
-        $this->lang = $_POST[$this->controller->getProperty('languageKey')];
+        $this->package = $_POST[$this->controller->getProperty('request_param_package')];
+        $this->topic = $_POST[$this->controller->getProperty('request_param_topic')];
+        $this->lang = $_POST[$this->controller->getProperty('request_param_language')];
         $this->lang = str_replace(' ('.$this->modx->lexicon('translex.default').')','',$this->lang);
         $post = $this->controller->getRealPOST();
 
         foreach($post as $key => $value){
-            if($key != $this->controller->getProperty('packageKey')
-                && $key != $this->controller->getProperty('topicKey')
-                && $key != $this->controller->getProperty('languageKey')
-                && $key != $this->controller->getProperty('actionKey')) {
+            if($key != $this->controller->getProperty('request_param_package')
+                && $key != $this->controller->getProperty('request_param_topic')
+                && $key != $this->controller->getProperty('request_param_language')
+                && $key != $this->controller->getProperty('request_param_action')) {
                 $keys[$key] = $value;
             }
         }

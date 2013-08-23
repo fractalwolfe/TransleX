@@ -27,7 +27,7 @@ class TransleXLogWriteProcessor extends TransleXProcessor {
     public function process(array $data = array()) {
         $user = $this->modx->user;
         if ($user->get('id') == 0) {
-            $name = $this->modx->lexicon('translex.anonymous_user');
+            $name = $this->modx->lexicon('translex.user_anonymous');
             $email = $this->modx->lexicon('translex.email_unknown');
         } else {
             $profile = $user->getOne('Profile');
@@ -65,14 +65,14 @@ class TransleXLogWriteProcessor extends TransleXProcessor {
                 break;
         }
 
-        $logstr = $this->modx->lexicon('translex.settings_header').' :: '.$logstr;
+        $logstr = $this->modx->lexicon('translex.header').' :: '.$logstr;
         $logfile = fopen($this->translex->config['workspacePath'].'translex.log','a');
         if (!$logfile) {
             return false;
         } else {
             $logstr = date('Y-m-d G:i:s').' '.$logstr;
             if(!empty($_SERVER['REMOTE_ADDR'])){
-                $logstr .= ' :: '.$this->modx->lexicon('translex.remote_host').': '.$_SERVER['REMOTE_ADDR']."\n";
+                $logstr .= ' :: '.$this->modx->lexicon('translex.user_remote_host').': '.$_SERVER['REMOTE_ADDR']."\n";
             }
             fwrite($logfile,$logstr);
             fclose($logfile);
